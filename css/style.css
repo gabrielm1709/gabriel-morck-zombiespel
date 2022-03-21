@@ -1,0 +1,32 @@
+body
+{
+    background-color: rgb(255, 255, 200);
+}
+#container
+{
+    display: flex;
+    column-gap: 50px;
+}
+#health-bar
+{
+    height: 50px;
+    width: 100px;
+    font-size: 25px;
+}
+
+#wave-bar
+{
+    font-size: 25px;
+}
+
+#wave-box
+{
+
+    font-size: 60px;
+    color: rgb(255, 255, 255);
+}
+
+#score-bar
+{
+    font-size: 30px;
+}
