@@ -32,12 +32,12 @@
         // Lista för att spara position av muspekare när man skjuter. 
         let targetPos = []; 
         // Cooldown för att zombie ska kunna göra skada. 
-        let coolDown = 20;
+        let coolDown = 100;
         let coolDownCnt = 0;
         // Cooldown för att skjuta skott. 
         let bulletCoolDown = 10;
         let bulletCoolDownCnt = 0;
-        let bulletDamage = 15;
+        let bulletDamage = 10;
         // Variabel för att skriva ut vilken wave man är på. 
         let wave = 0;
         let dirx = 1;
@@ -46,6 +46,7 @@
         let crosshairXY = mouse.y;
         let crosshairYX = mouse.x; 
         let crosshairYY = mouse.y-17/2;
+        let crosshairCnt = 0;
         // Position för väggar
         let walls = [[totalWidth-10, 0, 40, totalHeight, wallColour],
                     [0, 0, totalWidth, 10, wallColour], 
@@ -87,7 +88,7 @@
             enemyList = [];
             for(let i=0; i < amount; i++)
             {
-                enemyList.push({x: (totalWidth-30)*random(0, 1)+30, y: random(20, totalHeight-20), speed: random(1, 2), health: 100});
+                enemyList.push({x: (totalWidth-30)*random(0, 1)+30, y: random(20, totalHeight-20), speed: random(0.8, 1), health: 100});
             }
             
             return enemyList;
@@ -103,6 +104,10 @@
             }
             let availableMoves = [true, true, true, true];
             let collideDistance = 25;
+            if(objectType == "projectile")
+            {
+                collideDistance = 5;
+            }
             for(let i=0;i<walls.length;i++)
             {
                 if(Math.max(walls[i][0], x) - Math.min(walls[i][0], x) < collideDistance && y < walls[i][1] + walls[i][3] && y > walls[i][1])
@@ -140,6 +145,7 @@
                 enemies = createEnemies(amount);
                 text(200, totalHeight/2, 20, "wave" +wave, "black");
             }
+            // Rör på fiender
             for(let i=0;i<enemies.length;i++)
             {
                 if(enemies[i].health != 0)
@@ -147,11 +153,34 @@
                     picture(enemies[i].x, enemies[i].y, "img/zombie.png");
                 }
                 let availableMoves = detectCollision(enemies[i].x, enemies[i].y, "player");
-                if(enemies[i].x < playerx && availableMoves[2])
+                if(!availableMoves[0] || !availableMoves[1])
+                {
+                    if(enemies[i].x < totalWidth/2)
+                    {
+                        enemies[i].x -= enemies[i].speed;
+                    }
+                    if(enemies[i].x > totalWidth/2)
+                    {
+                        enemies[i].x += enemies[i].speed;
+                    }
+                }
+                /*
+                if(!availableMoves[2] || !availableMoves[3])
+                {
+                    if(enemies[i].y < playery)
+                    {
+                        enemies[i].y -= enemies[i].speed;
+                    }
+                    if(enemies[i].y > playery)
+                    {
+                        enemies[i].y += enemies[i].speed;
+                    }
+                }*/
+                else if(enemies[i].x < playerx && availableMoves[2])
                 {
                     enemies[i].x+=enemies[i].speed;
                 }
-                if(enemies[i].x > playerx && availableMoves[3])
+                else if(availableMoves[3] && enemies[i].x > playerx)
                 {
                     enemies[i].x-=enemies[i].speed;
                 }
@@ -193,12 +222,9 @@
             rectangle(100, 20, 150*(playerHealth/100), 15, "rgb(0, 255, 0)");
             picture(playerx, playery, playerImg);
             // Crosshair
-            crosshairXX = mouse.x-17/2;
-            crosshairXY = mouse.y;
-            crosshairYX = mouse.x; 
-            crosshairYY = mouse.y-17/2;
             rectangle(crosshairXX, crosshairXY, 20, 3, "rgb(0, 255, 255)");
             rectangle(crosshairYX, crosshairYY, 3, 20, "rgb(0, 255, 255)"); 
+            
             let checked = [false, false, false, false];
             // Väggar i kartan
             for(let i=0; i<walls.length;i++) 
@@ -230,6 +256,11 @@
             
             if(keyboard.space && bulletCoolDownCnt == 0)
             {
+                bulletCoolDownCnt+=1;
+                crosshairXX = mouse.x-17/2 +30;
+                crosshairXY = mouse.y+30;
+                crosshairYX = mouse.x-30; 
+                crosshairYY = mouse.y-17/2-30;
                 let bulletSound = new Audio("audio/gunshot.mp3");
                 bulletSound.play();
                 bulletCoolDownCnt+=1;
@@ -238,28 +269,20 @@
                 diry = 1;
                 if(mouse.x < playerx)
                 {
-                    // Om muspekare är till vänster om spelaren ska riktningen bli negativ (projektilen ska röra sig åt vänster)
+                    // Om muspekare är till vänster om spelaren ska x-riktningen bli negativ (projektilen ska röra sig åt vänster)
                     dirx = -1;
                 }
                 if(mouse.y < playery)
                 {
-                    // Om muspekare är över spelaren ska riktningen bli negativ (projektilen ska röra sig uppåt) 
+                    // Om muspekare är över spelaren ska y-riktningen bli negativ (projektilen ska röra sig uppåt) 
                     diry = -1
                 }
                 let i = bullets.length-1;
                 let distancex = Math.max(bullets[i][0], mouse.x) - Math.min(bullets[i][0], mouse.x);
                 let distancey = Math.max(bullets[i][1], mouse.y) - Math.min(bullets[i][1], mouse.y);
                 // Det vi vill är att x och y positionen ska ta så stora steg så att kommer till slutpunkten samtidigt 
-                if(distancex < distancey)
-                {
-                    distancex = distancex/distancey;
-                    distancey = 1;
-                }
-                else
-                {
-                    distancey = distancey/distancex;
-                    distancex = 1;
-                }
+                distancey = distancey/distancex;
+                distancex = 1;
                 targetPos.push([distancex*dirx, distancey*diry]); 
             }
 
@@ -303,6 +326,19 @@
                     medPos[i][0] = 10000;
                     medPos[i][1] = 10000;
                 }
+            }
+
+            if (crosshairXX != mouse.x-(17/2))
+            {
+                crosshairCnt+=1;
+                crosshairXX = mouse.x-17/2 +30-crosshairCnt;
+                crosshairXY = mouse.y+30-crosshairCnt;
+                crosshairYX = mouse.x-30+crosshairCnt; 
+                crosshairYY = mouse.y-17/2-30+crosshairCnt;
+            }
+            if(crosshairCnt == 30)
+            {
+                crosshairCnt = 0;
             }
 
             coolDownCnt+=1;
