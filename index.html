@@ -14,10 +14,12 @@
         <div id="wave-box"></div>
         <div id="score-bar"></div>
     </div>
+    <div id="death-bar"></div>
     <script src="simple.js">
         /*Huvudloopen*/
         let amount = 3;
         let enemies = [];
+        let enemyDamage = 10;
         // Startpositioner för spelare
         let playerx = totalWidth/2;
         let playery = totalHeight/2 -120;
@@ -37,16 +39,11 @@
         // Cooldown för att skjuta skott. 
         let bulletCoolDown = 10;
         let bulletCoolDownCnt = 0;
-        let bulletDamage = 10;
+        let bulletDamage = 20;
         // Variabel för att skriva ut vilken wave man är på. 
         let wave = 0;
         let dirx = 1;
         let diry = 1;
-        let crosshairXX = mouse.x-17/2;
-        let crosshairXY = mouse.y;
-        let crosshairYX = mouse.x; 
-        let crosshairYY = mouse.y-17/2;
-        let crosshairCnt = 0;
         // Position för väggar
         let walls = [[totalWidth-10, 0, 40, totalHeight, wallColour],
                     [0, 0, totalWidth, 10, wallColour], 
@@ -88,7 +85,7 @@
             enemyList = [];
             for(let i=0; i < amount; i++)
             {
-                enemyList.push({x: (totalWidth-30)*random(0, 1)+30, y: random(20, totalHeight-20), speed: random(0.8, 1), health: 100});
+                enemyList.push({x: (totalWidth-30)*random(0, 1)+30, y: random(20, totalHeight-20), speed: random(0.5, 1), health: 100, img: "img/zombie.png"});
             }
             
             return enemyList;
@@ -97,7 +94,7 @@
         // Funktion som kollar om ett objekt kolliderar med vägg. Returnerar en lista med fyra bools [upp, ner, höger, vänster]
         function detectCollision(x, y, objectType)
         {
-            let objectFix = [0, 0, 0, 0]
+            let objectFix = [0, 0, 0, 0];
             if(objectType == "player")
             {
                 objectFix = [22, 80, 10, 10];
@@ -106,7 +103,7 @@
             let collideDistance = 25;
             if(objectType == "projectile")
             {
-                collideDistance = 5;
+                collideDistance = 10;
             }
             for(let i=0;i<walls.length;i++)
             {
@@ -114,7 +111,6 @@
                 {
                     availableMoves[2] = false;
                 }
-                 
                 if(Math.max(walls[i][0]+walls[i][2], x) - Math.min(walls[i][0]+walls[i][2], x) < collideDistance && y < walls[i][1] + walls[i][3] && y > walls[i][1])
                 {
                     availableMoves[3] = false;
@@ -134,13 +130,19 @@
         function update()
         {
             clearScreen();
-            text(10, 10, 10, "test"+score, "rgb(0, 0, 0)")
             document.querySelector("#score-bar").innerHTML='<b>Score: '+score+'</b>';
             document.querySelector("#wave-bar").innerHTML='<b>Wave: '+wave+'</b>';
             if(enemies.length == 0)
             {
                 score+=100;
-                amount+=2;
+                if(amount == 16 && enemyDamage != 30)
+                {
+                    enemyDamage+=5;
+                }
+                else if(amount < 30)
+                {
+                    amount+=2;
+                }
                 wave+=1;
                 enemies = createEnemies(amount);
                 text(200, totalHeight/2, 20, "wave" +wave, "black");
@@ -150,45 +152,48 @@
             {
                 if(enemies[i].health != 0)
                 {
-                    picture(enemies[i].x, enemies[i].y, "img/zombie.png");
+                    picture(enemies[i].x, enemies[i].y, enemies[i].img);
                 }
-                let availableMoves = detectCollision(enemies[i].x, enemies[i].y, "player");
+                let availableMoves = detectCollision(enemies[i].x, enemies[i].y, "player"); 
                 if(!availableMoves[0] || !availableMoves[1])
                 {
                     if(enemies[i].x < totalWidth/2)
                     {
                         enemies[i].x -= enemies[i].speed;
+                        enemies[i].img="img/zombie.png";
                     }
                     if(enemies[i].x > totalWidth/2)
                     {
                         enemies[i].x += enemies[i].speed;
+                        enemies[i].img="img/zombie2.png";
                     }
                 }
-                /*
-                if(!availableMoves[2] || !availableMoves[3])
-                {
-                    if(enemies[i].y < playery)
-                    {
-                        enemies[i].y -= enemies[i].speed;
-                    }
-                    if(enemies[i].y > playery)
-                    {
-                        enemies[i].y += enemies[i].speed;
-                    }
-                }*/
                 else if(enemies[i].x < playerx && availableMoves[2])
                 {
                     enemies[i].x+=enemies[i].speed;
+                    enemies[i].img="img/zombie2.png";
                 }
                 else if(availableMoves[3] && enemies[i].x > playerx)
                 {
                     enemies[i].x-=enemies[i].speed;
+                    enemies[i].img="img/zombie.png";
                 }
-                if(enemies[i].y < playery && availableMoves[1])
+                if(!availableMoves[2] || !availableMoves[3])
+                {
+                    if(enemies[i].y < playery)
+                    {
+                        enemies[i].y += enemies[i].speed;
+                    }
+                    else if(enemies[i].y > playery)
+                    {
+                        enemies[i].y -= enemies[i].speed;
+                    }
+                }
+                else if(enemies[i].y < playery && availableMoves[1])
                 {
                     enemies[i].y+=enemies[i].speed;
                 }
-                if(enemies[i].y > playery && availableMoves[0])
+                else if(enemies[i].y > playery && availableMoves[0])
                 {
                     enemies[i].y-=enemies[i].speed;
                 }
@@ -199,10 +204,13 @@
 
                 if(distance(enemies[i].x, enemies[i].y+40, playerx, playery) < 40 && coolDownCnt == 0)
                 {
-                    playerHealth-=10;
+                    playerHealth-=enemyDamage;
                     if(playerHealth < 0)
                     {
+                        clearScreen();
                         playerHealth=0;
+                        text(totalWidth/2-200, totalHeight/2 -20, 50, "Game over!", "black");
+                        stopUpdate();
                     }
                 }
                 if(enemies[i].health <= 0)
@@ -222,8 +230,8 @@
             rectangle(100, 20, 150*(playerHealth/100), 15, "rgb(0, 255, 0)");
             picture(playerx, playery, playerImg);
             // Crosshair
-            rectangle(crosshairXX, crosshairXY, 20, 3, "rgb(0, 255, 255)");
-            rectangle(crosshairYX, crosshairYY, 3, 20, "rgb(0, 255, 255)"); 
+            rectangle(mouse.x-17/2, mouse.y, 20, 3, "rgb(0, 255, 255)");
+            rectangle(mouse.x, mouse.y-17/2, 3, 20, "rgb(0, 255, 255)"); 
             
             let checked = [false, false, false, false];
             // Väggar i kartan
@@ -257,33 +265,32 @@
             if(keyboard.space && bulletCoolDownCnt == 0)
             {
                 bulletCoolDownCnt+=1;
-                crosshairXX = mouse.x-17/2 +30;
-                crosshairXY = mouse.y+30;
-                crosshairYX = mouse.x-30; 
-                crosshairYY = mouse.y-17/2-30;
                 let bulletSound = new Audio("audio/gunshot.mp3");
                 bulletSound.play();
                 bulletCoolDownCnt+=1;
-                bullets.push([playerx, playery+30]);
-                dirx = 1; 
-                diry = 1;
-                if(mouse.x < playerx)
+                if(mouse.x-playerx < 0 && playerImg == "img/player.png" || mouse.x-playerx > 1 && playerImg == "img/player2.png")
                 {
-                    // Om muspekare är till vänster om spelaren ska x-riktningen bli negativ (projektilen ska röra sig åt vänster)
-                    dirx = -1;
+                    bullets.push([playerx, playery+30]);
+                    dirx = 1; 
+                    diry = 1;
+                    if(mouse.x < playerx)
+                    {
+                        // Om muspekare är till vänster om spelaren ska x-riktningen bli negativ (projektilen ska röra sig åt vänster)
+                        dirx = -1;
+                    }
+                    if(mouse.y < playery)
+                    {
+                        // Om muspekare är över spelaren ska y-riktningen bli negativ (projektilen ska röra sig uppåt) 
+                        diry = -1
+                    }
+                    let i = bullets.length-1;
+                    let distancex = Math.max(bullets[i][0], mouse.x) - Math.min(bullets[i][0], mouse.x);
+                    let distancey = Math.max(bullets[i][1], mouse.y) - Math.min(bullets[i][1], mouse.y);
+                    // Det vi vill är att x och y positionen ska ta så stora steg så att kommer till slutpunkten samtidigt 
+                    distancey = distancey/distancex;
+                    distancex = 1;
+                    targetPos.push([distancex*dirx, distancey*diry]); 
                 }
-                if(mouse.y < playery)
-                {
-                    // Om muspekare är över spelaren ska y-riktningen bli negativ (projektilen ska röra sig uppåt) 
-                    diry = -1
-                }
-                let i = bullets.length-1;
-                let distancex = Math.max(bullets[i][0], mouse.x) - Math.min(bullets[i][0], mouse.x);
-                let distancey = Math.max(bullets[i][1], mouse.y) - Math.min(bullets[i][1], mouse.y);
-                // Det vi vill är att x och y positionen ska ta så stora steg så att kommer till slutpunkten samtidigt 
-                distancey = distancey/distancex;
-                distancex = 1;
-                targetPos.push([distancex*dirx, distancey*diry]); 
             }
 
             for(let i=0;i<bullets.length;i++)
@@ -326,19 +333,6 @@
                     medPos[i][0] = 10000;
                     medPos[i][1] = 10000;
                 }
-            }
-
-            if (crosshairXX != mouse.x-(17/2))
-            {
-                crosshairCnt+=1;
-                crosshairXX = mouse.x-17/2 +30-crosshairCnt;
-                crosshairXY = mouse.y+30-crosshairCnt;
-                crosshairYX = mouse.x-30+crosshairCnt; 
-                crosshairYY = mouse.y-17/2-30+crosshairCnt;
-            }
-            if(crosshairCnt == 30)
-            {
-                crosshairCnt = 0;
             }
 
             coolDownCnt+=1;
