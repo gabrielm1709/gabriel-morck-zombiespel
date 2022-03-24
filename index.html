@@ -95,9 +95,11 @@
         function detectCollision(x, y, objectType)
         {
             let objectFix = [0, 0, 0, 0];
+            let objectDim = [0, 0];
             if(objectType == "player")
             {
                 objectFix = [22, 80, 10, 10];
+                objectDim = [44, 99];
             }
             let availableMoves = [true, true, true, true];
             let collideDistance = 25;
@@ -107,19 +109,19 @@
             }
             for(let i=0;i<walls.length;i++)
             {
-                if(Math.max(walls[i][0], x) - Math.min(walls[i][0], x) < collideDistance && y < walls[i][1] + walls[i][3] && y+99 > walls[i][1])
+                if(Math.max(walls[i][0], x) - Math.min(walls[i][0], x) < collideDistance && y < walls[i][1] + walls[i][3] && y+objectDim[1] > walls[i][1])
                 {
                     availableMoves[2] = false;
                 }
-                if(Math.max(walls[i][0]+walls[i][2], x) - Math.min(walls[i][0]+walls[i][2], x) < collideDistance && y < walls[i][1] + walls[i][3] && y+99 > walls[i][1])
+                if(Math.max(walls[i][0]+walls[i][2], x) - Math.min(walls[i][0]+walls[i][2], x) < collideDistance && y < walls[i][1] + walls[i][3] && y+objectDim[1] > walls[i][1])
                 {
                     availableMoves[3] = false;
                 }
-                if(Math.max(walls[i][1]+walls[i][3], y+objectFix[0]) - Math.min(walls[i][1]+walls[i][3], y+objectFix[0]) < collideDistance && x < walls[i][0] + walls[i][2] && x > walls[i][0])
+                if(Math.max(walls[i][1]+walls[i][3], y+objectFix[0]) - Math.min(walls[i][1]+walls[i][3], y+objectFix[0]) < collideDistance && x < walls[i][0] + walls[i][2] && x+objectDim[0] > walls[i][0])
                 {
                     availableMoves[0] = false;
                 }
-                if(Math.max(walls[i][1], y+objectFix[1]) - Math.min(walls[i][1], y+objectFix[1]) < collideDistance && x < walls[i][0] + walls[i][2] && x > walls[i][0])
+                if(Math.max(walls[i][1], y+objectFix[1]) - Math.min(walls[i][1], y+objectFix[1]) < collideDistance && x < walls[i][0] + walls[i][2] && x+objectDim[0] > walls[i][0])
                 {
                     availableMoves[1] = false;
                 }
