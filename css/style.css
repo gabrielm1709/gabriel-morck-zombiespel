@@ -14,11 +14,14 @@ a:hover
     text-decoration: underline;
 }
 
+/* Container för health, wave och score */
 #container
 {
     display: flex;
     column-gap: 50px;
 }
+
+/* Id för health-bar */
 #health-bar
 {
     height: 50px;
@@ -26,23 +29,19 @@ a:hover
     font-size: 25px;
 }
 
+/* Id för wave nummer */
 #wave-bar
 {
     font-size: 25px;
 }
 
-#wave-box
-{
-
-    font-size: 60px;
-    color: rgb(255, 255, 255);
-}
-
+/* Id för att skriva ut score */
 #score-bar
 {
     font-size: 25px;
 }
 
+/* Container för meny (index.html) */
 #container-menu
 {
     display: flex;
@@ -52,6 +51,8 @@ a:hover
     align-items: center;
     color: white;
 }
+
+/* Item för meny */
 
 .item-menu
 {
