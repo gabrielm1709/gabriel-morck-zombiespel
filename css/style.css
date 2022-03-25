@@ -2,6 +2,18 @@ body
 {
     background-color: rgb(255, 255, 200);
 }
+
+a
+{
+    color: white;
+    text-decoration: none;
+}
+
+a:hover
+{
+    text-decoration: underline;
+}
+
 #container
 {
     display: flex;
@@ -28,5 +40,22 @@ body
 
 #score-bar
 {
-    font-size: 30px;
+    font-size: 25px;
+}
+
+#container-menu
+{
+    display: flex;
+    margin-top: 50px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.item-menu
+{
+    font-size: 50px;
+    padding: 20px 20px 20px 20px;
+    outline: 1px solid black;
 }
